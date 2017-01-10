@@ -1,0 +1,43 @@
+---
+
+# web
+- hosts: web
+  become: true
+  vars:
+    # https://github.com/jweissig/episode-47/releases
+    app_version: release-0.02
+  serial: 1
+
+  pre_tasks:
+
+  - name: disable server in haproxy
+    shell: echo "disable servers /{{ inventory_hostname }}" | socat stdio /var/lib/haproxy/stats
+    delegate_to: "{{ item }}"
+    with_items: "{{ groups.lb }}"
+
+  tasks:
+  
+  - name: ensure apache is running
+    service: name=httpd state=running enabled=yes
+
+  - name: clean existing website content
+    file: path=/var/www/html/ state=absent
+
+  - name: deploy website content
+    git: repo=https://github.com/jweissig/episode-47.git
+         dest=/var/www/html/
+         version={{ app_version }}
+
+  handlers:
+
+  - name: restart apache
+    service: name=httpd state=restarted
+
+  post_tasks:
+
+  - name: enable server in haproxy
+    shell: echo "enable servers /{{ inventory_hostname }}" | socat stdio /var/lib/haproxy/stats
+    delegate_to: "{{ item }}"
+    with_items: "{{ groups.lb }}"
+
+

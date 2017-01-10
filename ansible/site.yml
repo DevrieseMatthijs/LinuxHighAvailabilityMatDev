@@ -1,0 +1,22 @@
+---
+
+- hosts: all
+  become: true
+  gather_facts: no
+  roles:
+   - common
+
+
+- name: install and configure webservers
+  hosts: web
+  become: true
+  roles:
+   - web
+     
+- name: install and configure loadbalancer
+  hosts: lb
+  become: true
+  roles:
+   - lb
+   
+

@@ -1,0 +1,15 @@
+---
+- name: install apache
+  yum: pkg=httpd state=latest
+
+- name: ensure apache is running
+  service: name=httpd state=running enabled=yes
+
+- name: deploy website content
+  template: src=index.html.j2 dest=/var/www/html/index.html
+  
+- name: restart everything
+  command: echo "this task will restart the web services"
+  notify: "restart web services"
+ 
+  
